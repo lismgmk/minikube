@@ -1,0 +1,27 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n-ingress
+  namespace: standard
+  labels: &labels
+    app: n8n
+    component: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/add-base-url: 'true'
+spec:
+  # tls:
+  # - hosts:
+  #   - your.domain.com
+  #   secretName: {{ YOUR_SECRET_TLS_CONFIG }}
+  rules:
+    - host: demo.test
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: n8n-service
+                port:
+                  number: 80

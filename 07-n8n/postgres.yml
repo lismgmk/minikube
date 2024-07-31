@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-postgres
+  namespace: standard
+  labels: &labels
+    app: n8n
+    component: database
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  clusterIP: None
+  selector:
+    app: n8n
+    component: database
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-postgres
+  namespace: standard
+  labels: &labels
+    app: n8n
+    component: database
+spec:
+  # serviceName: "n8n-postgres"
+  replicas: 1
+  selector:
+    matchLabels: *labels
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:16.0
+        imagePullPolicy: Always
+        ports:
+        - name: postgres
+          containerPort: 5432
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_USER
+          value: n8n
+        - name: POSTGRES_DB
+          value: n8n
+        - name: POSTGRES_PASSWORD
+          value: "mypassword"
+        resources:
+            limits:
+              memory: "500Mi"
+              cpu: "300m"
+        volumeMounts:
+         - name: postgres-data
+           mountPath: /var/lib/postgresql/data
+           subPath: postgres
+
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
