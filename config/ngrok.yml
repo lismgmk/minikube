@@ -1,0 +1,10 @@
+version: 2
+authtoken: 2hryxfBdgZ5RBeUtNAftRazrD2i_254yC8EkP89pevWMq1d8p
+tunnels:
+  n8n:
+    proto: http
+    addr: http://192.168.49.2:30000
+    # addr: n8n:5678
+    host_header: rewrite
+    # bind_tls: true
+   

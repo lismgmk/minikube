@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    volumes:
+      - ./config/ngrok.yml:/etc/ngrok.yml
+    ports:
+      - 4040:4040
+    environment:
+      - NGROK_PORT=http://192.168.49.2:30000
+    networks:
+      - common_network
+ 
+
+networks:
+  common_network:
+    driver: bridge

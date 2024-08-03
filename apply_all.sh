@@ -5,3 +5,6 @@ dirs=("00-namespace" "01-zookeeper" "02-kafka" "03-yahoo-kafka-manager" "04-kafk
 for dir in "${dirs[@]}"; do
     kubectl apply -R -f "$dir"
 done
+
+# Установите Grafana через Helm
+helm install grafana grafana/grafana --namespace monitoring -f 08-grafana/values.yaml
