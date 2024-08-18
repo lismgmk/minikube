@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: n8n-main-config
+  labels:
+    app: n8n
+    component: secrets
+stringData:
+  N8N_DISABLE_PRODUCTION_MAIN_PROCESS: "false"
+  N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "false"
+  EXECUTIONS_MODE: "queue"

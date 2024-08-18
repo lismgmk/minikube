@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-main-deployment
+  labels: &labels
+    app: n8n
+    component: main-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels: *labels
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+      - name: n8n-main
+        image: n8nio/n8n
+        imagePullPolicy: Always
+        ports:
+        - name: http-metrics
+          containerPort: 5678
+        envFrom:
+        - secretRef:
+            name: n8n-secrets
+        - secretRef:
+            name: n8n-main-config
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5678
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5678
+        resources:
+          limits:
+            cpu: "1.0"
+            memory: "1024Mi"
+          requests:
+            cpu: "0.5"
+            memory: 512Mi
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-worker-deployment
+  labels: &labels
+    app: n8n
+    component: worker-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels: *labels
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+      - name: n8n-worker
+        image: n8nio/n8n
+        imagePullPolicy: Always
+        args: ["n8n", "worker"]
+        ports:
+        - name: http-metrics
+          containerPort: 5678
+        envFrom:
+        - secretRef:
+            name: n8n-secrets
+        - secretRef:
+            name: n8n-worker-config
+        resources:
+          limits:
+            cpu: "1.0"
+            memory: "1024Mi"
+          requests:
+            cpu: "0.5"
+            memory: 512Mi

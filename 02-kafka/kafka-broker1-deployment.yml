@@ -8,10 +8,10 @@ metadata:
     app: kafka
 spec:
   ports:
-  - port: 9092
-    name: plaintext
-  - port: 9999
-    name: jmx
+    - port: 9092
+      name: plaintext
+    - port: 9999
+      name: jmx
   clusterIP: None
   selector:
     app: kafka
@@ -25,8 +25,8 @@ spec:
   selector:
     matchLabels:
       app: kafka
-  serviceName: "kafka"
-  replicas: 3
+  serviceName: 'kafka'
+  replicas: 1
   podManagementPolicy: OrderedReady
   template:
     metadata:
@@ -34,21 +34,69 @@ spec:
         app: kafka
     spec:
       containers:
-      - name: kafka
-        image: wurstmeister/kafka:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 9092
-          name: plaintext
-        env:
-          - name: KAFKA_ADVERTISED_PORT
-            value: "9092"
-          - name: BROKER_ID_COMMAND
-            value: "hostname | cut -d'-' -f2"
-          - name: KAFKA_ZOOKEEPER_CONNECT
-            value: "zookeeper-service:2181"
-          - name: KAFKA_LISTENERS
-            value: "PLAINTEXT://:9092"
-          - name: KAFKA_COMPRESSION_TYPE
-            value: "snappy"
-            # value: "gzip"
+        - name: kafka
+          image: wurstmeister/kafka:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9092
+              name: plaintext
+          env:
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka.kafka-ca1.svc.cluster.local:9092"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:9092"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: 'zookeeper-service:2181'
+            - name: BROKER_ID_COMMAND
+              value: "hostname | cut -d'-' -f2"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+  namespace: kafka-ca1
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  serviceName: 'zookeeper'
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: wurstmeister/zookeeper:latest
+          ports:
+            - containerPort: 2181
+              name: client
+            - containerPort: 2888
+              name: quorum
+            - containerPort: 3888
+              name: election
+          env:
+            - name: ZOO_MY_ID
+              value: "1"
+            - name: ZOO_SERVERS
+              value: "zookeeper-0.zookeeper.kafka-ca1.svc.cluster.local:2888:3888"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-service
+  namespace: kafka-ca1
+  labels:
+    app: zookeeper
+spec:
+  ports:
+    - port: 2181
+      name: client
+    - port: 2888
+      name: quorum
+    - port: 3888
+      name: election
+  clusterIP: None
+  selector:
+    app: zookeeper

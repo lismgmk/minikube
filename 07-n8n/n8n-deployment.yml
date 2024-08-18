@@ -22,12 +22,14 @@ spec:
     spec:
       containers:
       - name: n8n
-        image: lismgmk/lis-n8n:1.5.3
+        image: n8n/license:0.0.2
         imagePullPolicy: IfNotPresent
         ports:
         - name: http-metrics
           containerPort: 5678
         env:
+        - name: N8N_CUSTOM_EXTENSIONS
+          value: "/home/node/.n8n/nodes"
         - name: N8N_LOG_LEVEL
           value: 'debug'
         - name: N8N_LOG_OUTPUT
@@ -35,26 +37,34 @@ spec:
         - name: N8N_KAFKA_TRIGGER_LOG_LEVEL
           value: "debug"
         - name: N8N_KAFKA_BROKER
-          value: "kafka.kafka-ca1.svc.cluster.local:9092"
-        - name: N8N_KAFKA_TOPIC
-          value: "test"
-        - name: N8N_KAFKA_GROUP_ID
-          value: "n8n"
+          value: "kafka-0.kafka-ca1.svc.cluster.local:9092"
+        # - name: N8N_KAFKA_TOPIC
+        #   value: "test"
+        # - name: N8N_KAFKA_GROUP_ID
+        #   value: "n8n"
         envFrom:
         - secretRef:
             name: n8n-secrets
         livenessProbe:
           httpGet:
-            path: /healthz
-            port: 5678
+           path: /healthz   # URL, который Kubernetes будет проверять
+           port: 5678       # Порт, на котором приложение отвечает
+          initialDelaySeconds: 200  # Время ожидания перед первой проверкой после старта контейнера
+          periodSeconds: 10         # Как часто (в секундах) Kubernetes будет выполнять проверку
+          failureThreshold: 2       # Количество неудачных проверок до того, как контейнер будет перезапущен
+          timeoutSeconds: 5 
         readinessProbe:
           httpGet:
             path: /healthz
             port: 5678
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 2
+          timeoutSeconds: 5
         resources:
           limits:
-            cpu: "1.0"
-            memory: "1024Mi"
+            cpu: "2.5"
+            memory: "2524Mi"
           requests:
-            cpu: "0.5"
-            memory: 512Mi
+            cpu: "2"
+            memory: 2024Mi

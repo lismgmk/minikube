@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-n8n-chart.name" . }}
+  labels:
+    app: n8n
+    component: deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "my-n8n-chart.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "my-n8n-chart.name" . }}
+    spec:
+      containers:
+        - name: n8n
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 5678
